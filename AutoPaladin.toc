@@ -1,0 +1,7 @@
+## Interface: 11200
+## Title: AutoPaladin
+## Notes: Automates buffs, auras, seals, and abilities for Paladins.
+## Author: YourName
+## Version: 1.0
+
+AutoPaladin.lua
