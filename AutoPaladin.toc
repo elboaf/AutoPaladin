@@ -2,6 +2,6 @@
 ## Title: AutoPaladin
 ## Notes: Automates buffs, auras, seals, and abilities for Paladins.
 ## Author: YourName
-## Version: 1.0
+## Version: 1.0.1
 
 AutoPaladin.lua
