@@ -1,31 +1,32 @@
 -- Addon Name
 local addonName, addon = "AutoPaladin", {}
 
--- Variables
-local blessingOfMight = "Blessing of Might"
-local blessingOfWisdom = "Blessing of Wisdom"
-local devotionAura = "Devotion Aura"
-local righteousFury = "Righteous Fury"
-local sealOfRighteousness = "Seal of Righteousness"
-local sealOfWisdom = "Seal of Wisdom"
-local judgement = "Judgement"
-local crusaderStrike = "Crusader Strike"
-local consecration = "Consecration"
-local holyStrike = "Holy Strike"
-local handOfProtection = "Hand of Protection"
-local layOnHands = "Lay on Hands"
-local dispel = "Purify"
-local freedom = "Hand of Freedom"
+-- Spell Names
+local BLESSING_OF_MIGHT = "Blessing of Might"
+local BLESSING_OF_WISDOM = "Blessing of Wisdom"
+local DEVOTION_AURA = "Devotion Aura"
+local RIGHTEOUS_FURY = "Righteous Fury"
+local SEAL_OF_RIGHTEOUSNESS = "Seal of Righteousness"
+local SEAL_OF_WISDOM = "Seal of Wisdom"
+local JUDGEMENT = "Judgement"
+local CRUSADER_STRIKE = "Crusader Strike"
+local CONSECRATION = "Consecration"
+local HOLY_STRIKE = "Holy Strike"
+local HAND_OF_PROTECTION = "Hand of Protection"
+local LAY_ON_HANDS = "Lay on Hands"
+local DISPEL = "Purify"
+local FREEDOM = "Hand of Freedom"
 
--- List of debuffs to check for Purify
-local debuffsToDispel = {
+-- Debuff Lists
+local DEBUFFS_TO_DISPEL = {
     "Nature_Regenerate",
     "HarmUndead",
     "CallofBone",
     "CorrosiveBreath",
     -- Add more debuff names here as needed
 }
-local debuffsToFreedom = {
+
+local DEBUFFS_TO_FREEDOM = {
     "snare",
     -- Add more debuff names here as needed
 }
@@ -58,24 +59,11 @@ local function IsManaUser(unit)
 end
 
 -- Function to check if a unit has any of the debuffs in the list
-local function HasDebuff(unit)
+local function HasDebuff(unit, debuffList)
     for i = 1, 16 do
         local name = UnitDebuff(unit, i)
         if name then
-            for _, debuff in ipairs(debuffsToDispel) do
-                if strfind(name, debuff) then
-                    return true
-                end
-            end
-        end
-    end
-    return false
-end
-local function HasSnare(unit)
-    for i = 1, 16 do
-        local name = UnitDebuff(unit, i)
-        if name then
-            for _, debuff in ipairs(debuffsToFreedom) do
+            for _, debuff in ipairs(debuffList) do
                 if strfind(name, debuff) then
                     return true
                 end
@@ -92,34 +80,34 @@ local function ApplyPlayerBuffs()
     local manaPercentage = (currentMana / maxMana) * 100
 
     -- Check and apply Seal of Righteousness (always, even in combat)
-    if not buffed(sealOfRighteousness, "player") and manaPercentage > 70 then
-        CastSpellByName(sealOfRighteousness)
+    if not buffed(SEAL_OF_RIGHTEOUSNESS, "player") and manaPercentage > 70 then
+        CastSpellByName(SEAL_OF_RIGHTEOUSNESS)
         SpellTargetUnit("player")
     end
 
     -- Check and apply Seal of Wisdom if mana is below 50%
-    if not buffed(sealOfWisdom, "player") and manaPercentage < 70 then
-        CastSpellByName(sealOfWisdom)
+    if not buffed(SEAL_OF_WISDOM, "player") and manaPercentage < 70 then
+        CastSpellByName(SEAL_OF_WISDOM)
         SpellTargetUnit("player")
     end
 
     -- Only apply other buffs if out of combat
     if not UnitAffectingCombat("player") then
         -- Check and apply Blessing of Might
-        if not buffed(blessingOfMight, "player") then
-            CastSpellByName(blessingOfMight)
+        if not buffed(BLESSING_OF_MIGHT, "player") then
+            CastSpellByName(BLESSING_OF_MIGHT)
             SpellTargetUnit("player")
         end
 
         -- Check and apply Devotion Aura
-        if not buffed(devotionAura, "player") then
-            CastSpellByName(devotionAura)
+        if not buffed(DEVOTION_AURA, "player") then
+            CastSpellByName(DEVOTION_AURA)
             SpellTargetUnit("player")
         end
 
         -- Check and apply Righteous Fury
-        if not buffed(righteousFury, "player") then
-            CastSpellByName(righteousFury)
+        if not buffed(RIGHTEOUS_FURY, "player") then
+            CastSpellByName(RIGHTEOUS_FURY)
             SpellTargetUnit("player")
         end
     end
@@ -134,14 +122,14 @@ local function ApplyPartyBuffs()
             if UnitExists(partyMember) and not UnitIsUnit(partyMember, "player") then
                 if IsManaUser(partyMember) then
                     -- Apply Blessing of Wisdom to mana users
-                    if not buffed(blessingOfWisdom, partyMember) then
-                        CastSpellByName(blessingOfWisdom)
+                    if not buffed(BLESSING_OF_WISDOM, partyMember) then
+                        CastSpellByName(BLESSING_OF_WISDOM)
                         SpellTargetUnit(partyMember)
                     end
                 else
                     -- Apply Blessing of Might to non-mana users
-                    if not buffed(blessingOfMight, partyMember) then
-                        CastSpellByName(blessingOfMight)
+                    if not buffed(BLESSING_OF_MIGHT, partyMember) then
+                        CastSpellByName(BLESSING_OF_MIGHT)
                         SpellTargetUnit(partyMember)
                     end
                 end
@@ -157,18 +145,18 @@ local function CastAbilities()
     local manaPercentage = (currentMana / maxMana) * 100
 
     -- Cast Judgement on cooldown
-    if IsSpellReady(judgement) then
-        CastSpellByName(judgement)
+    if IsSpellReady(JUDGEMENT) then
+        CastSpellByName(JUDGEMENT)
     end
 
     -- Cast Crusader Strike if mana is above 50%
-    if manaPercentage > 50 and IsSpellReady(crusaderStrike) then
-        CastSpellByName(crusaderStrike)
+    if manaPercentage > 50 and IsSpellReady(CRUSADER_STRIKE) then
+        CastSpellByName(CRUSADER_STRIKE)
     end
 
     -- Cast Holy Strike if mana is below 50%
-    if manaPercentage <= 50 and IsSpellReady(holyStrike) then
-        CastSpellByName(holyStrike)
+    if manaPercentage <= 50 and IsSpellReady(HOLY_STRIKE) then
+        CastSpellByName(HOLY_STRIKE)
     end
 end
 
@@ -181,19 +169,20 @@ local function CheckPartyHealth()
     -- Check self first
     local selfHealth = UnitHealth("player") / UnitHealthMax("player") * 100
     if selfHealth <= 10 then
-        CastSpellByName(layOnHands)
+        CastSpellByName(LAY_ON_HANDS)
         SpellTargetUnit("player")
         return
     end
 
     -- Check for debuffs and cast Purify if needed
-    if HasDebuff("player") and manaPercentage > 5 then
-        CastSpellByName(dispel)
+    if HasDebuff("player", DEBUFFS_TO_DISPEL) and manaPercentage > 5 then
+        CastSpellByName(DISPEL)
         SpellTargetUnit("player")
         return
     end
-    if HasSnare("player") and manaPercentage > 5 then
-        CastSpellByName(freedom)
+
+    if HasDebuff("player", DEBUFFS_TO_FREEDOM) and manaPercentage > 5 then
+        CastSpellByName(FREEDOM)
         SpellTargetUnit("player")
         return
     end
@@ -206,31 +195,32 @@ local function CheckPartyHealth()
 
             -- Cast Lay on Hands if health is below 10%
             if health <= 10 then
-                CastSpellByName(layOnHands)
+                CastSpellByName(LAY_ON_HANDS)
                 SpellTargetUnit(partyMember)
                 return
             end
 
             -- Cast Consecration if health is below 90% and in combat
-            if health <= 80 and UnitAffectingCombat("player") and manaPercentage > 20 and IsSpellReady(consecration) then
-                CastSpellByName(consecration)
+            if health <= 80 and UnitAffectingCombat("player") and manaPercentage > 20 and IsSpellReady(CONSECRATION) then
+                CastSpellByName(CONSECRATION)
             end
 
             -- Check for debuffs and cast Purify if needed
-            if HasDebuff(partyMember) and manaPercentage > 5 then
-                CastSpellByName(dispel)
+            if HasDebuff(partyMember, DEBUFFS_TO_DISPEL) and manaPercentage > 5 then
+                CastSpellByName(DISPEL)
                 SpellTargetUnit(partyMember)
                 return
             end
-            if HasSnare(partyMember) and manaPercentage > 5 then
-                CastSpellByName(freedom)
+
+            if HasDebuff(partyMember, DEBUFFS_TO_FREEDOM) and manaPercentage > 5 then
+                CastSpellByName(FREEDOM)
                 SpellTargetUnit(partyMember)
                 return
             end
 
             -- Cast Hand of Protection if health is below 20% (excluding self)
             if health <= 20 and not UnitIsUnit(partyMember, "player") then
-                CastSpellByName(handOfProtection)
+                CastSpellByName(HAND_OF_PROTECTION)
                 SpellTargetUnit(partyMember)
                 return
             end
@@ -241,16 +231,8 @@ end
 -- Register slash command
 SLASH_AUTOPALADIN1 = "/autopaladin"
 SlashCmdList["AUTOPALADIN"] = function()
-    -- Apply buffs to the player
     ApplyPlayerBuffs()
-
-    -- Apply buffs to party members
     ApplyPartyBuffs()
-
-    -- Cast abilities
     CastAbilities()
-
-    -- Check party health and cast emergency spells
     CheckPartyHealth()
-
 end
