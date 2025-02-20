@@ -31,6 +31,7 @@ local DEBUFFS_TO_DISPEL = {
 
 local DEBUFFS_TO_FREEDOM = {
     "snare",
+    "ShockWave",
     -- Add more debuff names here as needed
 }
 
