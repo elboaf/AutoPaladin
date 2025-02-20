@@ -16,6 +16,7 @@ local HAND_OF_PROTECTION = "Hand of Protection"
 local LAY_ON_HANDS = "Lay on Hands"
 local DISPEL = "Purify"
 local FREEDOM = "Hand of Freedom"
+local FLASH_OF_LIGHT = "Flash of Light" -- New healing spell
 
 -- Debuff Lists
 local DEBUFFS_TO_DISPEL = {
@@ -23,6 +24,8 @@ local DEBUFFS_TO_DISPEL = {
     "HarmUndead",
     "CallofBone",
     "CorrosiveBreath",
+    "NullifyDisease",
+    "Poison",
     -- Add more debuff names here as needed
 }
 
@@ -166,7 +169,26 @@ local function CheckPartyHealth()
     local maxMana = UnitManaMax("player")
     local manaPercentage = (currentMana / maxMana) * 100
 
-    -- Check self first
+    -- Check for snares and cast Hand of Freedom first (highest priority)
+    if HasDebuff("player", DEBUFFS_TO_FREEDOM) and manaPercentage > 5 then
+        CastSpellByName(FREEDOM)
+        SpellTargetUnit("player")
+        return
+    end
+
+    -- Check party members for snares and cast Hand of Freedom first (highest priority)
+    for i = 1, 4 do
+        local partyMember = "party" .. i
+        if UnitExists(partyMember) then
+            if HasDebuff(partyMember, DEBUFFS_TO_FREEDOM) and manaPercentage > 5 then
+                CastSpellByName(FREEDOM)
+                SpellTargetUnit(partyMember)
+                return
+            end
+        end
+    end
+
+    -- Check self first for other debuffs and low health
     local selfHealth = UnitHealth("player") / UnitHealthMax("player") * 100
     if selfHealth <= 10 then
         CastSpellByName(LAY_ON_HANDS)
@@ -174,20 +196,14 @@ local function CheckPartyHealth()
         return
     end
 
-    -- Check for debuffs and cast Purify if needed
+    -- Check for other debuffs and cast Purify if needed
     if HasDebuff("player", DEBUFFS_TO_DISPEL) and manaPercentage > 5 then
         CastSpellByName(DISPEL)
         SpellTargetUnit("player")
         return
     end
 
-    if HasDebuff("player", DEBUFFS_TO_FREEDOM) and manaPercentage > 5 then
-        CastSpellByName(FREEDOM)
-        SpellTargetUnit("player")
-        return
-    end
-
-    -- Check party members
+    -- Check party members for other debuffs and low health
     for i = 1, 4 do
         local partyMember = "party" .. i
         if UnitExists(partyMember) then
@@ -205,15 +221,9 @@ local function CheckPartyHealth()
                 CastSpellByName(CONSECRATION)
             end
 
-            -- Check for debuffs and cast Purify if needed
+            -- Check for other debuffs and cast Purify if needed
             if HasDebuff(partyMember, DEBUFFS_TO_DISPEL) and manaPercentage > 5 then
                 CastSpellByName(DISPEL)
-                SpellTargetUnit(partyMember)
-                return
-            end
-
-            if HasDebuff(partyMember, DEBUFFS_TO_FREEDOM) and manaPercentage > 5 then
-                CastSpellByName(FREEDOM)
                 SpellTargetUnit(partyMember)
                 return
             end
@@ -228,6 +238,33 @@ local function CheckPartyHealth()
     end
 end
 
+-- New Function: Heal myself and party members when out of combat and health is below 90%
+local function HealOutOfCombat()
+    -- Only heal if out of combat
+    if not UnitAffectingCombat("player") then
+        -- Check self first
+        local selfHealth = UnitHealth("player") / UnitHealthMax("player") * 100
+        if selfHealth < 90 and IsSpellReady(FLASH_OF_LIGHT) then
+            CastSpellByName(FLASH_OF_LIGHT)
+            SpellTargetUnit("player")
+            return
+        end
+
+        -- Check party members
+        for i = 1, 4 do
+            local partyMember = "party" .. i
+            if UnitExists(partyMember) then
+                local health = UnitHealth(partyMember) / UnitHealthMax(partyMember) * 100
+                if health < 90 and IsSpellReady(FLASH_OF_LIGHT) then
+                    CastSpellByName(FLASH_OF_LIGHT)
+                    SpellTargetUnit(partyMember)
+                    return
+                end
+            end
+        end
+    end
+end
+
 -- Register slash command
 SLASH_AUTOPALADIN1 = "/autopaladin"
 SlashCmdList["AUTOPALADIN"] = function()
@@ -235,4 +272,5 @@ SlashCmdList["AUTOPALADIN"] = function()
     ApplyPartyBuffs()
     CastAbilities()
     CheckPartyHealth()
+    HealOutOfCombat() -- Added healing functionality
 end
