@@ -6,7 +6,7 @@ local BLESSING_OF_MIGHT = "Blessing of Might"
 local BLESSING_OF_WISDOM = "Blessing of Wisdom"
 local DEVOTION_AURA = "Devotion Aura"
 local RIGHTEOUS_FURY = "Righteous Fury"
-local SEAL_OF_RIGHTEOUSNESS = "Seal of Righteousness"
+local SEAL_OF_RIGHTEOUSNESS = "Seal of Command"
 local SEAL_OF_WISDOM = "Seal of Wisdom"
 local JUDGEMENT = "Judgement"
 local CRUSADER_STRIKE = "Crusader Strike"
@@ -16,7 +16,7 @@ local HAND_OF_PROTECTION = "Hand of Protection"
 local LAY_ON_HANDS = "Lay on Hands"
 local DISPEL = "Purify"
 local FREEDOM = "Hand of Freedom"
-local FLASH_OF_LIGHT = "Flash of Light" -- New healing spell
+local FLASH_OF_LIGHT = "Holy Light" -- New healing spell
 
 -- Debuff Lists
 local DEBUFFS_TO_DISPEL = {
@@ -82,15 +82,23 @@ local function ApplyPlayerBuffs()
     local currentMana = UnitMana("player")
     local maxMana = UnitManaMax("player")
     local manaPercentage = (currentMana / maxMana) * 100
+    -- local manaLow = 0
+    -- local manaHigh = 0
+    if manaPercentage < 20 then
+        manaLow = 1
+    end
+    if manaPercentage > 80 then
+        manaLow = 0
+    end
 
     -- Check and apply Seal of Righteousness (always, even in combat)
-    if not buffed(SEAL_OF_RIGHTEOUSNESS, "player") and manaPercentage > 70 then
+    if not buffed(SEAL_OF_RIGHTEOUSNESS, "player") and manaLow <= 0 then
         CastSpellByName(SEAL_OF_RIGHTEOUSNESS)
         SpellTargetUnit("player")
     end
 
     -- Check and apply Seal of Wisdom if mana is below 50%
-    if not buffed(SEAL_OF_WISDOM, "player") and manaPercentage < 70 then
+    if not buffed(SEAL_OF_WISDOM, "player") and manaLow > 0 then
         CastSpellByName(SEAL_OF_WISDOM)
         SpellTargetUnit("player")
     end
@@ -218,7 +226,7 @@ local function CheckPartyHealth()
             end
 
             -- Cast Consecration if health is below 90% and in combat
-            if health <= 80 and UnitAffectingCombat("player") and manaPercentage > 20 and IsSpellReady(CONSECRATION) then
+            if health <= 90 and UnitAffectingCombat("player") and manaPercentage > 20 and IsSpellReady(CONSECRATION) then
                 CastSpellByName(CONSECRATION)
             end
 
