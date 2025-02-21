@@ -279,7 +279,7 @@ SLASH_AUTOPALADIN1 = "/autopaladin"
 SlashCmdList["AUTOPALADIN"] = function()
     ApplyPlayerBuffs()
     ApplyPartyBuffs()
-    CastAbilities()
     CheckPartyHealth()
+    CastAbilities()
     HealOutOfCombat() -- Added healing functionality
 end
